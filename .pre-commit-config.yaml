@@ -14,13 +14,6 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
-      - id: uv-ruff-check
-        name: uv ruff check (fix)
-        entry: uv
-        language: system
-        pass_filenames: true
-        types: [python]
-        args: ["run", "ruff", "check", "--fix", "--force-exclude"]
       - id: uv-ruff-format
         name: uv ruff format
         entry: uv
