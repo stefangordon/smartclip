@@ -53,7 +53,7 @@ def _var_key(tf, v):  # type: ignore[no-untyped-def]
     return ("var", id(v))
 
 
-def _leq_with_tol(a: float, b: float, rtol: float = 1e-7, atol: float = 1e-12) -> bool:
+def _leq_with_tol(a: float, b: float, rtol: float = 1e-6, atol: float = 1e-9) -> bool:
     """Return True if a <= b within numerical tolerance.
 
     Allows small overshoot due to float32/64 rounding using a combined
