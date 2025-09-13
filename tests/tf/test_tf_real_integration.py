@@ -121,6 +121,8 @@ def test_tf_agc_scopes_respect_target(scope: str):
     # Compute per-variable targets
     targets = {}
     for v in model.trainable_variables:
+        if clipper.should_exclude_param(v):
+            continue
         # Pass variable directly to tf.linalg.global_norm - it handles value extraction
         w_norm = float(tf.linalg.global_norm([v]).numpy())
         targets[_var_key(tf, v)] = clipper.target_norm(w_norm)
@@ -129,6 +131,8 @@ def test_tf_agc_scopes_respect_target(scope: str):
 
     for cg, v in zip(clipped, model.trainable_variables):
         if cg is None:
+            continue
+        if clipper.should_exclude_param(v):
             continue
         g_norm = float(tf.linalg.global_norm([cg]).numpy())
         assert g_norm <= targets[_var_key(tf, v)] + 1e-12
