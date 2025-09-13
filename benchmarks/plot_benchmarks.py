@@ -40,7 +40,12 @@ def read_series(csv_path: Path) -> Dict[str, List[float]]:
 
 
 def _run_pt_benchmarks(
-    datasets: List[str], algos: List[str], steps: int, batch_size: int, seeds: List[int], threads: int | None = None
+    datasets: List[str],
+    algos: List[str],
+    steps: int,
+    batch_size: int,
+    seeds: List[int],
+    threads: int | None = None,
 ) -> None:
     import os
     import subprocess
@@ -71,12 +76,14 @@ def _run_pt_benchmarks(
                 env = dict(**os.environ)
                 if threads and threads > 0:
                     t = str(threads)
-                    env.update({
-                        "OMP_NUM_THREADS": t,
-                        "MKL_NUM_THREADS": t,
-                        "OPENBLAS_NUM_THREADS": t,
-                        "NUMEXPR_NUM_THREADS": t,
-                    })
+                    env.update(
+                        {
+                            "OMP_NUM_THREADS": t,
+                            "MKL_NUM_THREADS": t,
+                            "OPENBLAS_NUM_THREADS": t,
+                            "NUMEXPR_NUM_THREADS": t,
+                        }
+                    )
                     cmd += ["--threads", t]
                 subprocess.run(cmd, check=True, env=env)
 
@@ -122,8 +129,12 @@ def main() -> None:
     parser.add_argument(
         "--output", type=str, default="docs/assets/benchmarks-{framework}-{dataset}.svg"
     )
-    parser.add_argument("--threads", type=int, default=0, help="CPU threads to use for benchmarks (0=auto)")
-    parser.add_argument("--debug", action="store_true", help="Print debug info and write averaged CSVs")
+    parser.add_argument(
+        "--threads", type=int, default=0, help="CPU threads to use for benchmarks (0=auto)"
+    )
+    parser.add_argument(
+        "--debug", action="store_true", help="Print debug info and write averaged CSVs"
+    )
     args = parser.parse_args()
 
     import matplotlib
@@ -199,7 +210,9 @@ def main() -> None:
             out_avg.parent.mkdir(parents=True, exist_ok=True)
             with out_avg.open("w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["step", "loss", "metric", "algo", "dataset", "framework"])  # header
+                writer.writerow(
+                    ["step", "loss", "metric", "algo", "dataset", "framework"]
+                )  # header
                 for s, loss_val, metric_val in zip(steps, avg_loss, avg_acc):
                     writer.writerow([s, loss_val, label2, algo, dataset, framework])
 

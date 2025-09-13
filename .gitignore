@@ -31,3 +31,5 @@ data/
 
 # Runs
 runs/
+
+.coverage

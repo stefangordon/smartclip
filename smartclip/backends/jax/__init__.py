@@ -27,14 +27,21 @@ def _tree_l2_norm(tree: Any) -> Any:
     return jnp.sqrt(sum(jnp.sum(jnp.square(x)) for x in jax.tree_util.tree_leaves(tree)))
 
 
-def apply(model: Any, clipper: AutoClip | AGC | ZScoreClip, on_metrics: OnMetricsCallback | None = None) -> Any:
+def apply(
+    model: Any, clipper: AutoClip | AGC | ZScoreClip, on_metrics: OnMetricsCallback | None = None
+) -> Any:
     # JAX backend requires explicit grads; see apply_grads.
     raise RuntimeError(
         "jax backend requires explicit gradients. Use smartclip.backends.jax.apply_grads(grads, params, clipper)."
     )
 
 
-def apply_grads(grads: Any, params: Any, clipper: AutoClip | AGC | ZScoreClip, on_metrics: OnMetricsCallback | None = None) -> Any:
+def apply_grads(
+    grads: Any,
+    params: Any,
+    clipper: AutoClip | AGC | ZScoreClip,
+    on_metrics: OnMetricsCallback | None = None,
+) -> Any:
     # Global scope: compute a single scale and apply to all leaves
     jax, jnp = _jax()
     if clipper.scope == "global":

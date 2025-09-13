@@ -29,7 +29,9 @@ def _iter_trainable_vars(model: Any) -> List[Any]:
     return vars_
 
 
-def apply(model: Any, clipper: AutoClip | AGC | ZScoreClip, on_metrics: OnMetricsCallback | None = None) -> Any:
+def apply(
+    model: Any, clipper: AutoClip | AGC | ZScoreClip, on_metrics: OnMetricsCallback | None = None
+) -> Any:
     """Apply clipping to gradients stored on the model via tape.gradient workflows.
 
     TensorFlow does not store gradients on variables by default. This function is

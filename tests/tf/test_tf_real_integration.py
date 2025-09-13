@@ -104,7 +104,8 @@ def test_tf_agc_scopes_respect_target(scope: str):
     # Compute per-variable targets
     targets = {}
     for v in model.trainable_variables:
-        w_norm = float(tf.linalg.global_norm([v.value()]).numpy())
+        # Pass variable directly to tf.linalg.global_norm - it handles value extraction
+        w_norm = float(tf.linalg.global_norm([v]).numpy())
         targets[v.ref()] = clipper.target_norm(w_norm)
 
     clipped = sc_tf.apply_grads(grads, model, clipper)

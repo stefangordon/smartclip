@@ -63,6 +63,7 @@ class _Model:
     def named_modules(self):  # type: ignore[no-untyped-def]
         return []
 
+
 # Make _Model appear to be from torch module for backend detection
 _Model.__module__ = "torch.nn"
 
@@ -73,7 +74,14 @@ def test_torch_apply_emits_metrics(monkeypatch):
     import smartclip as sc
 
     model = _Model(n=3)
-    clipper = sc.AutoClip(mode="percentile", percentile=90.0, history="ema", warmup_steps=0, min_history=0, scope="per_param")
+    clipper = sc.AutoClip(
+        mode="percentile",
+        percentile=90.0,
+        history="ema",
+        warmup_steps=0,
+        min_history=0,
+        scope="per_param",
+    )
 
     records: List[dict] = []
 
@@ -90,4 +98,3 @@ def test_torch_apply_emits_metrics(monkeypatch):
         assert "key" in r and isinstance(r["key"], tuple)
         assert "grad_norm" in r
         assert "scale" in r
-

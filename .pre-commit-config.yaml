@@ -6,14 +6,15 @@ repos:
         args: ["--fix"]
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.18.1
     hooks:
       - id: mypy
         additional_dependencies: [types-setuptools]
+        pass_filenames: false
+        args: ["--config-file=pyproject.toml", "smartclip"]
+        files: ^smartclip/
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
-
-

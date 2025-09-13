@@ -22,9 +22,14 @@ def _is_torch_model(model: object) -> bool:
     application code). Fallback to module-name heuristics otherwise.
     """
     try:  # Fast path when torch is present
-        import torch  # type: ignore
-
-        return isinstance(model, torch.nn.Module)
+        torch_mod = import_module("torch")
+        nn_mod = getattr(torch_mod, "nn", None)
+        module_cls = getattr(nn_mod, "Module", None) if nn_mod is not None else None
+        if module_cls is not None:
+            return isinstance(model, module_cls)
+        # If torch imported but structure unexpected, fall back to heuristic
+        mod = type(model).__module__
+        return mod.startswith("torch.") or mod.split(".")[0] == "torch"
     except Exception:
         # Heuristic fallback avoids importing torch eagerly
         mod = type(model).__module__
