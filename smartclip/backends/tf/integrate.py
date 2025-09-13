@@ -22,7 +22,17 @@ def _get_tf_callback_base() -> Any:
 
 
 def _resolve_model(model_or_ref: Any) -> Any:
-    return model_or_ref() if callable(model_or_ref) else model_or_ref
+    # Check if it's a reference/accessor (weakref, lambda, etc.) vs an actual model
+    # Keras models are callable but have specific attributes we can check
+    if hasattr(model_or_ref, 'trainable_variables'):
+        # It's already a model
+        return model_or_ref
+    elif callable(model_or_ref):
+        # It's a reference that needs to be called to get the model
+        return model_or_ref()
+    else:
+        # Just return as-is
+        return model_or_ref
 
 
 def patch_optimizer_apply_gradients(
