@@ -27,8 +27,8 @@ dependencies = []
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/your-org/smartclip"
-Issues = "https://github.com/your-org/smartclip/issues"
+Homepage = "https://github.com/stefangordon/smartclip"
+Issues = "https://github.com/stefangordon/smartclip/issues"
 
 [project.optional-dependencies]
 torch = [
@@ -110,5 +110,3 @@ testpaths = ["tests"]
 markers = [
   "integration: marks tests that require real framework dependencies",
 ]
-
-
