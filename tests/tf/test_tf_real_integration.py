@@ -53,6 +53,17 @@ def _var_key(tf, v):  # type: ignore[no-untyped-def]
     return ("var", id(v))
 
 
+def _leq_with_tol(a: float, b: float, rtol: float = 1e-7, atol: float = 1e-12) -> bool:
+    """Return True if a <= b within numerical tolerance.
+
+    Allows small overshoot due to float32/64 rounding using a combined
+    relative+absolute tolerance: a <= b * (1 + rtol) + max(atol, rtol*abs(b)).
+    """
+
+    # We implement as: a <= b + max(atol, rtol * abs(b))
+    return a <= b + max(atol, rtol * abs(b))
+
+
 def test_apply_grads_agc_global_respects_threshold():
     tf = _import_tf()
     import smartclip as sc
@@ -75,7 +86,7 @@ def test_apply_grads_agc_global_respects_threshold():
 
     clipped = sc_tf.apply_grads(grads, model, clipper)
     g_new = _global_norm(tf, clipped)
-    assert g_new <= T + 1e-10  # Allow for floating point precision
+    assert _leq_with_tol(g_new, T)  # Allow for floating point precision
 
     # Ensure optimizer.apply_gradients accepts clipped grads
     opt.apply_gradients(zip(clipped, model.trainable_variables))
@@ -112,7 +123,7 @@ def test_keras_callback_patches_and_restores_and_scales():
 
         clipped = sc_tf.apply_grads(grads2, model, clipper)
         g_new = _global_norm(tf, clipped)
-        assert g_new <= T + 1e-10  # Allow for floating point precision
+        assert _leq_with_tol(g_new, T)  # Allow for floating point precision
     finally:
         cb.on_train_end()
 
@@ -141,9 +152,7 @@ def test_tf_agc_scopes_respect_target(scope: str):
     for orig, cg in zip(orig_norms, clipped):
         if cg is not None:
             new_norm = float(tf.linalg.global_norm([cg]).numpy())
-            assert (
-                new_norm <= orig + 1e-10
-            ), (
+            assert _leq_with_tol(new_norm, orig), (
                 f"Gradient norm increased from {orig} to {new_norm}"
             )  # Allow for floating point precision
 
@@ -165,7 +174,7 @@ def test_tf_agc_scopes_respect_target(scope: str):
             non_none_clipped = [cg for cg in clipped if cg is not None]
             if non_none_clipped:
                 g_norm = float(tf.linalg.global_norm(non_none_clipped).numpy())
-                assert g_norm <= target + 1e-10  # Allow for floating point precision
+                assert _leq_with_tol(g_norm, target)  # Allow for floating point precision
 
 
 @pytest.mark.parametrize("scope", ["global", "per_layer", "per_param"])  # type: ignore[list-item]
@@ -188,7 +197,7 @@ def test_tf_autoclip_scopes_do_not_increase_norms(scope: str):
         if cg is None:
             continue
         g_new = float(tf.linalg.global_norm([cg]).numpy())
-        assert g_new <= g0 + 1e-10  # Allow for floating point precision
+        assert _leq_with_tol(g_new, g0)  # Allow for floating point precision
 
 
 @pytest.mark.parametrize("scope", ["global", "per_layer", "per_param"])  # type: ignore[list-item]
@@ -211,4 +220,4 @@ def test_tf_zscore_scopes_do_not_increase_norms(scope: str):
         if cg is None:
             continue
         g_new = float(tf.linalg.global_norm([cg]).numpy())
-        assert g_new <= g0 + 1e-10  # Allow for floating point precision
+        assert _leq_with_tol(g_new, g0)  # Allow for floating point precision

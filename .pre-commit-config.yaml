@@ -1,10 +1,4 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
-    hooks:
-      - id: ruff
-        args: ["--fix"]
-      - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.18.1
     hooks:
@@ -18,3 +12,19 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: uv-ruff-check
+        name: uv ruff check (fix)
+        entry: uv
+        language: system
+        pass_filenames: true
+        types: [python]
+        args: ["run", "ruff", "check", "--fix", "--force-exclude"]
+      - id: uv-ruff-format
+        name: uv ruff format
+        entry: uv
+        language: system
+        pass_filenames: true
+        types: [python]
+        args: ["run", "ruff", "format", "--force-exclude"]
