@@ -142,7 +142,12 @@ def apply_grads(
             # For AGC, we also need global weight norm
             if isinstance(clipper, AGC):
                 # Compute global weight norm across all variables
-                w_norm = tf.linalg.global_norm([v.value() for v in variables])
+                # Handle both v.value() method and v.value property across TF versions
+                w_vals = []
+                for v in variables:
+                    val = getattr(v, 'value', v)
+                    w_vals.append(val() if callable(val) else val)
+                w_norm = tf.linalg.global_norm(w_vals)
                 clipper.observe(float(g_norm.numpy()), float(w_norm.numpy()), key=("global",))
                 if clipper.can_clip():
                     s = clipper.scale(float(g_norm.numpy()), float(w_norm.numpy()))
@@ -229,7 +234,12 @@ def clip_context(
                 # For AGC, we also need global weight norm
                 if isinstance(clipper, AGC):
                     # Compute global weight norm across all variables
-                    w_norm = tf.linalg.global_norm([v.value() for v in vars_])
+                    # Handle both v.value() method and v.value property across TF versions
+                    w_vals = []
+                    for v in vars_:
+                        val = getattr(v, 'value', v)
+                        w_vals.append(val() if callable(val) else val)
+                    w_norm = tf.linalg.global_norm(w_vals)
                     clipper.observe(float(g_norm.numpy()), float(w_norm.numpy()), key=("global",))
                     if clipper.can_clip():
                         s = clipper.scale(float(g_norm.numpy()), float(w_norm.numpy()))
