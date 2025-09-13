@@ -65,7 +65,12 @@ def test_apply_grads_agc_global_respects_threshold():
 
     # Compute baseline global norms
     _global_norm(tf, grads)
-    w_norm = float(tf.linalg.global_norm([v.value() for v in model.trainable_variables]).numpy())
+    # Handle both v.value() method and v.value property across TF versions
+    w_vals = []
+    for v in model.trainable_variables:
+        val = getattr(v, 'value', v)
+        w_vals.append(val() if callable(val) else val)
+    w_norm = float(tf.linalg.global_norm(w_vals).numpy())
     T = clipper.target_norm(w_norm)
 
     clipped = sc_tf.apply_grads(grads, model, clipper)
@@ -87,7 +92,12 @@ def test_keras_callback_patches_and_restores_and_scales():
     clipper = sc.AGC(clipping=1e-3, scope="global")
 
     # Precompute target
-    w_norm = float(tf.linalg.global_norm([v.value() for v in model.trainable_variables]).numpy())
+    # Handle both v.value() method and v.value property across TF versions
+    w_vals = []
+    for v in model.trainable_variables:
+        val = getattr(v, 'value', v)
+        w_vals.append(val() if callable(val) else val)
+    w_norm = float(tf.linalg.global_norm(w_vals).numpy())
     T = clipper.target_norm(w_norm)
 
     # Install callback and patch
