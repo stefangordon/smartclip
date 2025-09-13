@@ -36,6 +36,23 @@ def _global_norm(tf, tensors):  # type: ignore[no-untyped-def]
     return float(tf.linalg.global_norm(non_none).numpy())
 
 
+def _var_key(tf, v):  # type: ignore[no-untyped-def]
+    """Return a stable key for a TensorFlow Variable across TF versions.
+
+    Prefer ``v.ref()`` when available; fall back to variable name or id.
+    """
+    ref_attr = getattr(v, "ref", None)
+    if callable(ref_attr):
+        try:
+            return ref_attr()
+        except Exception:
+            pass
+    name = getattr(v, "name", None)
+    if isinstance(name, str) and name:
+        return name
+    return ("var", id(v))
+
+
 def test_apply_grads_agc_global_respects_threshold():
     tf = _import_tf()
     import smartclip as sc
@@ -106,7 +123,7 @@ def test_tf_agc_scopes_respect_target(scope: str):
     for v in model.trainable_variables:
         # Pass variable directly to tf.linalg.global_norm - it handles value extraction
         w_norm = float(tf.linalg.global_norm([v]).numpy())
-        targets[v.ref()] = clipper.target_norm(w_norm)
+        targets[_var_key(tf, v)] = clipper.target_norm(w_norm)
 
     clipped = sc_tf.apply_grads(grads, model, clipper)
 
@@ -114,7 +131,7 @@ def test_tf_agc_scopes_respect_target(scope: str):
         if cg is None:
             continue
         g_norm = float(tf.linalg.global_norm([cg]).numpy())
-        assert g_norm <= targets[v.ref()] + 1e-12
+        assert g_norm <= targets[_var_key(tf, v)] + 1e-12
 
 
 @pytest.mark.parametrize("scope", ["global", "per_layer", "per_param"])  # type: ignore[list-item]
