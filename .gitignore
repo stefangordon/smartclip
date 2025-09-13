@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build
+dist/
+build/
+site/
+
+# IDE
+.idea/
+.vscode/
+
+# Environments
+.env
+.venv
+venv/
+
+# Lock/installer
+uv.lock
+
+
+# Data
+data/
+
+# Runs
+runs/

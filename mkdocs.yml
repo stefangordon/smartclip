@@ -1,0 +1,34 @@
+site_name: smartclip
+site_url: https://stefangordon.github.io/smartclip/
+repo_url: https://github.com/stefangordon/smartclip
+edit_uri: edit/main/docs/
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+nav:
+  - Home: index.md
+  - Algorithms: algorithms.md
+  - API: api.md
+  - Guides:
+    - PyTorch: guides/pytorch.md
+    - JAX: guides/jax.md
+    - Lightning: guides/lightning.md
+    - HF Trainer: guides/hf_trainer.md
+    - TensorFlow: guides/tensorflow.md
+    - Keras: guides/keras.md
+    - Telemetry: guides/telemetry.md
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: false
+markdown_extensions:
+  - admonition
+  - codehilite
+
+

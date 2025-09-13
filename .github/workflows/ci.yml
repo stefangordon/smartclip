@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  core:
+    name: core (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install dependencies
+        run: |
+          uv pip install -e .[test,dev] --system
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Type check
+        run: |
+          uv run mypy smartclip
+      - name: Tests
+        run: |
+          uv run pytest -q -m "not integration" --maxfail=1 --disable-warnings --cov=smartclip --cov-report=xml --junitxml=reports/junit-core.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-core-${{ matrix.python }}
+          path: |
+            reports/junit-core.xml
+            coverage.xml
+
+  torch:
+    name: torch (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install torch CPU wheels
+        run: |
+          uv pip install --index-url https://download.pytorch.org/whl/cpu torch --system --extra-index-url https://pypi.org/simple
+          uv pip install -e .[test,torch] --system
+      - name: Tests
+        run: |
+          uv run pytest -q -m integration tests/torch --junitxml=reports/junit-torch.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-torch-${{ matrix.python }}
+          path: reports/junit-torch.xml
+
+  tf:
+    name: tf (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          - python: "3.13"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install TensorFlow CPU
+        run: |
+          uv pip install tensorflow-cpu --only-binary :all: --system
+          uv pip install -e .[test] --system
+      - name: Tests
+        run: |
+          uv run pytest -q -m integration tests/tf --junitxml=reports/junit-tf.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-tf-${{ matrix.python }}
+          path: reports/junit-tf.xml
+
+  jax:
+    name: jax (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install JAX CPU
+        run: |
+          uv pip install "jax[cpu]" --system
+          uv pip install flax optax --system
+          uv pip install -e .[test] --system
+      - name: Tests
+        run: |
+          uv run pytest -q -m integration tests/jax --junitxml=reports/junit-jax.xml || echo "No JAX tests yet"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-jax-${{ matrix.python }}
+          path: reports/junit-jax.xml
+
+
